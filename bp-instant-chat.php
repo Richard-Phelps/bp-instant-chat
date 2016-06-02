@@ -15,6 +15,7 @@
     // Admin settings (avatar height, avatar width, name display)
     // Fix bug where if the second user of a chat wants to start a conversation that already exists, it creates a new chat
     // Fix bug where empty message can be sent
+    // Fix bug where url's within plugin don't work if website is using different permlaink setting to post name
 
 
     if (!class_exists('BPIC'))
