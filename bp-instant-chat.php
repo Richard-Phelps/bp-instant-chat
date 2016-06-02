@@ -4,7 +4,7 @@
     * Plugin URI: http://iamrichardphelps.com/
     * Description: Instant chat plugin for BuddyPress alowing user to connect and talk in real time.
     * Tags: buddypress
-    * Version: 1.0.0
+    * Version: 1.0
     * Author: Richard Phelps
     * Author URI: http://iamrichardphelps.com/
     * License: GPL12
