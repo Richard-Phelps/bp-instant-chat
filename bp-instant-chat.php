@@ -11,11 +11,9 @@
     */
 
     // TO DO:
-    // Get conversations code (see line 167 of this file and line 36 of the chat page template)
     // Admin settings (avatar height, avatar width, name display)
-    // Fix bug where if the second user of a chat wants to start a conversation that already exists, it creates a new chat
-    // Fix bug where empty message can be sent
-    // Fix bug where url's within plugin don't work if website is using different permlaink setting to post name
+    // Allow for message load timout to be set in admin (post launch)
+    // Get conversations code (see line 167 of this file and line 36 of the chat page template) (post launch)
 
 
     if (!class_exists('BPIC'))
@@ -59,7 +57,7 @@
                 global $wpdb;
 
                 // Create statement for conversation table
-                $sql_c = "CREATE TABLE " . $this->conversation_table . " (
+                $sql_c = "CREATE TABLE IF NOT EXISTS " . $this->conversation_table . " (
                     id int(11) NOT NULL AUTO_INCREMENT,
                     user_one int(11) NOT NULL,
                     user_two int(11) NOT NULL,
@@ -68,7 +66,7 @@
                 $wpdb->query($sql_c);
 
                 // Create statement for messages table
-                $sql_m = "CREATE TABLE " . $this->message_table . " (
+                $sql_m = "CREATE TABLE IF NOT EXISTS " . $this->message_table . " (
                     id int(11) NOT NULL AUTO_INCREMENT,
                     conversation_id int(11) NOT NULL,
                     message_from int(11) NOT NULL,
@@ -165,12 +163,21 @@
             {
                 global $wpdb;
 
-                $conversation_count = $wpdb->get_results("SELECT COUNT(*) AS count FROM ' . $this->conversation_table . ' WHERE user_one = '" . bp_loggedin_user_id() . "' OR user_two = '" . bp_loggedin_user_id() . "'");
-                $conversations = $wpdb->get_results("SELECT * FROM ' . $this->conversation_table . ' WHERE user_one = '" . bp_loggedin_user_id() . "' OR user_two = '" . bp_loggedin_user_id() . "'");
+                $conversation_count = $wpdb->get_results("SELECT COUNT(*) AS count FROM $this->conversation_table WHERE user_one = '" . bp_loggedin_user_id() . "' OR user_two = '" . bp_loggedin_user_id() . "'");
+                $conversations = $wpdb->get_results("SELECT * FROM $this->conversation_table WHERE user_one = '" . bp_loggedin_user_id() . "' OR user_two = '" . bp_loggedin_user_id() . "'");
 
                 if($conversation_count[0]->count !== 0){
                     // NEED TO REPLACE LINE BELOW WITH ACTUAL CONVERSATIONS ARRAY (LAST MESSAGE ID, USER TWO ETC.)
                     return true;
+                }
+            }
+
+            public function set_url($get_variable)
+            {
+                if (get_query_var('page_id')) {
+                    return get_permalink( get_page_by_title('Chat') ) . '&' . $get_variable . '=';
+                } else {
+                    return get_permalink( get_page_by_title('Chat') ) . '?' . $get_variable . '=';
                 }
             }
 
@@ -188,7 +195,18 @@
 
                 if ($users) {
                     foreach ($users as $user) {
-                        echo '<a href="#" class="start-conversation" user-id="' . $user->ID . '"><p>' . __('Start conversation with', 'bpic') . ' ' .  $user->display_name . ' (' . $user->user_nicename . ')</p></a>';
+                        $loggedin_user = bp_loggedin_user_id();
+                        $check_conversation = $wpdb->get_results("SELECT COUNT(*) AS count
+                            FROM $this->conversation_table
+                            WHERE (user_one = '$loggedin_user' AND user_two = '$user->ID')
+                            OR (user_one = '$user->ID' AND user_two = '$loggedin_user')
+                        ");
+
+                        if ($check_conversation[0]->count == '0') {
+                            echo '<a href="#" class="start-chat" user-id="' . $user->ID . '"><p>' . __('Start chat with', 'bpic') . ' ' .  $user->display_name . ' (' . $user->user_nicename . ')</p></a>';
+                        } else {
+                            echo '<a href="#" class="continue-chat" user-id="' . $user->ID . '"><p>' . __('Continue chat with', 'bpic') . ' ' .  $user->display_name . ' (' . $user->user_nicename . ')</p></a>';
+                        }
                     }
                 } else {
                     _e('<p>Sorry but we couldn\'t find any users by that name!</p>', 'bpic');
@@ -197,9 +215,17 @@
                 ?>
                     <script>
                         (function($){
-                            $('.start-conversation').click(function(){
+                            $('.start-chat').click(function(){
                                 var user = $(this).attr('user-id');
-                                window.location.assign('<?php echo site_url(); ?>/chat/?sc=' + user);
+                                window.location.assign('<?php echo $this->set_url("sc"); ?>' + user);
+                            });
+                        })(jQuery);
+                    </script>
+                    <script>
+                        (function($){
+                            $('.continue-chat').click(function(){
+                                var user = $(this).attr('user-id');
+                                window.location.assign('<?php echo $this->set_url("cid"); ?>' + user);
                             });
                         })(jQuery);
                     </script>
@@ -227,8 +253,10 @@
                 }
                 $conversation = $wpdb->get_results("SELECT id FROM " . $this->conversation_table . " WHERE user_one = '$user_one' AND user_two = '$user_two'");
 
+                $url = $this->set_url('cid');
+
                 // Take user to the newly created chat
-                wp_redirect(site_url() . '/chat/?cid=' . $conversation[0]->id);
+                wp_redirect($url . $conversation[0]->id);
                 exit;
             }
 
@@ -315,34 +343,36 @@
                     $message_to = $conversation[0]->user_one;
                 }
 
-                $wpdb->insert($this->message_table, array(
-                    'conversation_id' => $cid,
-                    'message_from' => bp_loggedin_user_id(),
-                    'message_to' => $message_to,
-                    'message' => $message,
-                    'timestamp' => date('Y-m-d G:i:s'),
-                    'status' => 0
-                ));
+                if (!empty($message)) {
+                    $wpdb->insert($this->message_table, array(
+                        'conversation_id' => $cid,
+                        'message_from' => bp_loggedin_user_id(),
+                        'message_to' => $message_to,
+                        'message' => $message,
+                        'timestamp' => date('Y-m-d G:i:s'),
+                        'status' => 0
+                    ));
 
-                $avatar_args = array(
-                    'item_id' => bp_loggedin_user_id(),
-                    'type' => 'thumbnail',
-                    'class' => 'bpic-message-user-avatar',
-                    'width' => get_option('bpic_avatar_width'),
-                    'height' => get_option('bpic_avatar_height')
-                );
+                    $avatar_args = array(
+                        'item_id' => bp_loggedin_user_id(),
+                        'type' => 'thumbnail',
+                        'class' => 'bpic-message-user-avatar',
+                        'width' => get_option('bpic_avatar_width'),
+                        'height' => get_option('bpic_avatar_height')
+                    );
 
-                $name_display = get_option('bpic_name_display');
+                    $name_display = get_option('bpic_name_display');
 
-                // Return new message into the chat
-                ?>
-                    <div class="bpic-message-container">
-                        <?php echo bp_core_fetch_avatar($avatar_args); ?>
-                        <p class="bpic-message-display-name"><?php echo get_userdata( bp_loggedin_user_id() )->$name_display; ?></p>
-                        <p class="bpic-message"><?php echo nl2br($message); ?></p>
-                        <span class="bpic-message-status"><?php _e('Delivered', 'bpic'); ?></span>
-                    </div>
-                <?php
+                    // Return new message into the chat
+                    ?>
+                        <div class="bpic-message-container">
+                            <?php echo bp_core_fetch_avatar($avatar_args); ?>
+                            <p class="bpic-message-display-name"><?php echo get_userdata( bp_loggedin_user_id() )->$name_display; ?></p>
+                            <p class="bpic-message"><?php echo nl2br($message); ?></p>
+                            <span class="bpic-message-status"><?php _e('Delivered', 'bpic'); ?></span>
+                        </div>
+                    <?php
+                }
             }
         }
     }

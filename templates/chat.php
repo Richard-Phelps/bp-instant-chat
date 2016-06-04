@@ -19,6 +19,8 @@
 
     $conversations = $bpic->get_conversations();
 
+    print_r(get_query_var('sc'));
+
     if(!get_query_var('sc') && !get_query_var('cid')){
         ?>
             <form method="POST">
@@ -44,6 +46,7 @@
                         <textarea name="message" class="bpic-textarea" id="bpic_message" placeholder="<?php _e('Enter message to send...', 'bpic'); ?>" onfocus="this.placeholder=''" onblur="this.placeholder='<?php _e('Enter message to send...', 'bpic'); ?>'"></textarea>
                         <input type="submit" class="bpic-submit-message" value="<?php _e('Send Message', 'bpic'); ?>">
                     </form>
+                    <div class="bpic-error-container">&nbsp;</div>
                     <div class="chat-container" id="chat_container">
                         <div class="bpic-text-center">
                             <img src="<?php echo str_replace('/templates', '', plugin_dir_url( __FILE__ )) . '/images/loading_spinner.gif'; ?>" class="bpic-loading-spinner" alt="<?php _e('Loading', 'bpic'); ?>">
@@ -67,7 +70,7 @@
 
                     		function load_message(){
                     			$.ajax({
-                    				url: '<?php echo site_url(); ?>/chat?action=retrieve&cid=<?php echo get_query_var("cid"); ?>',
+                    				url: '<?php echo $bpic->set_url("action"); ?>retrieve&cid=<?php echo get_query_var("cid"); ?>',
                     				cache: false,
                     				success: function(data){
                                         if(data == 'error_1'){
@@ -86,12 +89,17 @@
                             running = true;
 
                 			$('#bpic_message_form').submit(function(){
+                                $('.bpic-error-container').html();
                                 var cid = <?php echo get_query_var('cid'); ?>;
                                 var message = $('#bpic_message').val();
-                				$.post('<?php echo site_url(); ?>/chat?action=insert&cid=' + cid, {message: message}, function(data){
-                                    $('#bpic_message').val('');
-                					$('#chat_container').prepend(data);
-                				});
+                                if(message !== ''){
+                    				$.post('<?php echo $bpic->set_url("action"); ?>insert&cid=' + cid, {message: message}, function(data){
+                                        $('#bpic_message').val('');
+                    					$('#chat_container').prepend(data);
+                    				});
+                                }else{
+                                    $('.bpic-error-container').html('<p class="bpic-error-message"><?php echo _e("You must enter some text before you can send your message"); ?></p>');
+                                }
                 				return false;
                 			});
                         })(jQuery);
