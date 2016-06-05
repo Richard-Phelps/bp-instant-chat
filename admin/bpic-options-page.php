@@ -15,6 +15,8 @@
     <h2><?php _e('BuddyPress Instant Chat', 'bpic'); ?></h2>
 
     <form method="post" action="options.php">
-        <?php //settings_fields(); ?>
+        <?php settings_fields($this->plugin_name); ?>
+        <?php do_settings_sections(__FILE__); ?>
+        <?php submit_button(); ?>
     </form>
 </div>

@@ -15,24 +15,24 @@
     // Allow for message load timout to be set in admin (post launch)
     // Get conversations code (see line 167 of this file and line 36 of the chat page template) (post launch)
 
-
     if (!class_exists('BPIC'))
     {
         class BPIC
         {
-            private $plugin_name = 'bp-instant-chat';
+            public $plugin_name = 'bp-instant-chat';
             private $version = '1.0';
             public $conversation_table;
             public $message_table;
             private $charset_collate;
             public $conversations = array();
+            public $plugin_prefix = 'bpic_';
 
             public function __construct()
             {
                 global $wpdb;
 
-                $this->conversation_table = $wpdb->prefix . 'bpic_conversations';
-                $this->message_table = $wpdb->prefix . 'bpic_messages';
+                $this->conversation_table = $wpdb->prefix . $this->plugin_prefix . 'conversations';
+                $this->message_table = $wpdb->prefix . $this->plugin_prefix . 'messages';
 
                 if ($wpdb) {
                     $this->charset_collate = $wpdb->get_charset_collate();
@@ -45,6 +45,7 @@
                 add_action( 'admin_init', array($this, 'admin_init') );
                 add_action( 'admin_notices', array($this, 'admin_notices') );
                 add_action( 'admin_menu', array($this, 'add_options_page') );
+                add_action( 'admin_init', array($this, 'admin_settings') );
 
                 // Filters
                 add_filter( 'page_template', array($this, 'set_page_template') );
@@ -57,6 +58,8 @@
 
             public function init()
             {
+                require_once(ABSPATH . 'wp-includes/pluggable.php');
+
                 global $wpdb;
 
                 // Create statement for conversation table
@@ -98,9 +101,9 @@
                 // Enqueue styles / scripts
                 wp_enqueue_style('bpic-style', plugin_dir_url( __FILE__ ) . '/css/bpic-frontend-style.css', array(), '1.0');
 
-                update_option('bpic_avatar_width', 50);
-                update_option('bpic_avatar_height', 50);
-                update_option('bpic_name_display', 'user_nicename');
+                update_option($this->plugin_prefix . 'avatar_width', 50);
+                update_option($this->plugin_prefix . 'avatar_height', 50);
+                update_option($this->plugin_prefix . 'name_display', 'user_nicename');
             }
 
             public function admin_init()
@@ -115,9 +118,9 @@
                 }
 
                 if ($buddypress_version < 2) {
-                    $admin_notices = get_option('bpic_notices');
+                    $admin_notices = get_option($this->plugin_prefix . 'notices');
                     $admin_notices[] = __('BuddyPress Instant Chat requires <b>BuddyPress 2.0</b>, please ensure that BuddyPress is installed and up to date.', 'bpic');
-                    update_option('bpic_notices', $admin_notices);
+                    update_option($this->plugin_prefix . 'notices', $admin_notices);
                 }
             }
 
@@ -139,13 +142,13 @@
             public function admin_notices()
             {
                 // Setup admin notices
-                $admin_notices = get_option('bpic_notices');
+                $admin_notices = get_option($this->plugin_prefix . 'notices');
                 if ($admin_notices) {
                     foreach ($admin_notices as $admin_notice)
                     {
                         echo '<div class="error"><p>' . $admin_notice . '</p></div>';
                     }
-                    delete_option('bpic_notices');
+                    delete_option($this->plugin_prefix . 'notices');
                 }
             }
 
@@ -203,7 +206,7 @@
             {
                 global $wpdb;
 
-                $query = $post['bpic_user'];
+                $query = $post[$this->plugin_prefix . 'user'];
                 // Search for users
                 $users = $wpdb->get_results("SELECT ID, display_name, user_nicename
                     FROM wp_users
@@ -309,13 +312,13 @@
                                 'item_id' => $message->message_from,
                                 'type' => 'thumbnail',
                                 'class' => 'bpic-message-user-avatar',
-                                'width' => get_option('bpic_avatar_width'),
-                                'height' => get_option('bpic_avatar_height')
+                                'width' => get_option($this->plugin_prefix . 'avatar_width'),
+                                'height' => get_option($this->plugin_prefix . 'avatar_height')
                             );
 
                             $user_from = get_userdata($message->message_from);
 
-                            $name_display = get_option('bpic_name_display');
+                            $name_display = get_option($this->plugin_prefix . 'name_display');
 
                             if ($message->status == '0' && $message->message_from == bp_loggedin_user_id()) {
                                 $status = __('Delivered', 'bpic');
@@ -375,11 +378,11 @@
                         'item_id' => bp_loggedin_user_id(),
                         'type' => 'thumbnail',
                         'class' => 'bpic-message-user-avatar',
-                        'width' => get_option('bpic_avatar_width'),
-                        'height' => get_option('bpic_avatar_height')
+                        'width' => get_option($this->plugin_prefix . 'avatar_width'),
+                        'height' => get_option($this->plugin_prefix . 'avatar_height')
                     );
 
-                    $name_display = get_option('bpic_name_display');
+                    $name_display = get_option($this->plugin_prefix . 'name_display');
 
                     // Return new message into the chat
                     ?>
@@ -390,6 +393,34 @@
                             <span class="bpic-message-status"><?php _e('Delivered', 'bpic'); ?></span>
                         </div>
                     <?php
+                }
+            }
+
+            public function admin_settings()
+            {
+                add_settings_field(
+                    $this->plugin_prefix . 'avatar_width',
+                    __('Avatar Width', 'bpic'),
+                    array($this, 'avatar_width_callback'),
+                    $this->plugin_name
+                );
+
+                register_setting($this->plugin_name, $this->plugin_prefix . 'avatar_width');
+            }
+
+            public function avatar_width_callback()
+            {
+                $field_name = $this->plugin_prefix . 'avatar_width';
+                $bpic_avatar_width = get_option($this->plugin_prefix . 'avatar_width');
+                ?>
+                    <input type="number" name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" value="<?php echo $bpic_avatar_width; ?>" class="all-options" />
+                <?php
+            }
+
+            public function numeric_sanitize($bpic_avatar_width)
+            {
+                if (is_numeric($bpic_avatar_width)) {
+                    return intval($bpic_avatar_width);
                 }
             }
         }
