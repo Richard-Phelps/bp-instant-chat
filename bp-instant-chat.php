@@ -20,6 +20,8 @@
     {
         class BPIC
         {
+            private $plugin_name = 'bp-instant-chat';
+            private $version = '1.0';
             public $conversation_table;
             public $message_table;
             private $charset_collate;
@@ -42,6 +44,7 @@
                 // Admin Hooks
                 add_action( 'admin_init', array($this, 'admin_init') );
                 add_action( 'admin_notices', array($this, 'admin_notices') );
+                add_action( 'admin_menu', array($this, 'add_options_page') );
 
                 // Filters
                 add_filter( 'page_template', array($this, 'set_page_template') );
@@ -93,7 +96,7 @@
                 }
 
                 // Enqueue styles / scripts
-                wp_enqueue_style('bpic-style', plugin_dir_url( __FILE__ ) . '/css/bpic-frontend-style.css', array(), '1.0.0');
+                wp_enqueue_style('bpic-style', plugin_dir_url( __FILE__ ) . '/css/bpic-frontend-style.css', array(), '1.0');
 
                 update_option('bpic_avatar_width', 50);
                 update_option('bpic_avatar_height', 50);
@@ -116,6 +119,21 @@
                     $admin_notices[] = __('BuddyPress Instant Chat requires <b>BuddyPress 2.0</b>, please ensure that BuddyPress is installed and up to date.', 'bpic');
                     update_option('bpic_notices', $admin_notices);
                 }
+            }
+
+            public function add_options_page()
+            {
+                $bpic_title = __('BuddyPress Instant Chat', 'bpic');
+                $bpic_capabilities = 'manage_options';
+                $bpic_slug = $this->plugin_name;
+                $bpic_icon = 'dashicons-format-chat';
+
+                add_menu_page($bpic_title, $bpic_title, $bpic_capabilities, $bpic_slug, array($this, 'options_page'), $bpic_icon);
+            }
+
+            public function options_page()
+            {
+                include_once('admin/bpic-options-page.php');
             }
 
             public function admin_notices()
