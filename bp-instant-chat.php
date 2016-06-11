@@ -101,9 +101,17 @@
                 // Enqueue styles / scripts
                 wp_enqueue_style('bpic-style', plugin_dir_url( __FILE__ ) . '/css/bpic-frontend-style.css', array(), '1.0');
 
-                update_option($this->plugin_prefix . 'avatar_width', 50);
-                update_option($this->plugin_prefix . 'avatar_height', 50);
-                update_option($this->plugin_prefix . 'name_display', 'user_nicename');
+                if(!get_option($this->plugin_prefix . 'avatar_width')){
+                    update_option($this->plugin_prefix . 'avatar_width', 50);
+                }
+
+                if(!get_option($this->plugin_prefix . 'avatar_height')){
+                    update_option($this->plugin_prefix . 'avatar_height', 50);
+                }
+
+                if(!get_option($this->plugin_prefix . 'name_display')){
+                    update_option($this->plugin_prefix . 'name_display', 'user_nicename');
+                }
             }
 
             public function admin_init()
@@ -417,7 +425,7 @@
                 <?php
             }
 
-            public function numeric_sanitize($bpic_avatar_width)
+            public function int_display($bpic_avatar_width)
             {
                 if (is_numeric($bpic_avatar_width)) {
                     return intval($bpic_avatar_width);
