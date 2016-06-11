@@ -19,8 +19,6 @@
 
     $conversations = $bpic->get_conversations();
 
-    print_r(get_query_var('sc'));
-
     if(!get_query_var('sc') && !get_query_var('cid')){
         ?>
             <form method="POST">
@@ -74,7 +72,7 @@
                     				cache: false,
                     				success: function(data){
                                         if(data == 'error_1'){
-                                            window.location.assign('<?php echo site_url(); ?>/chat/');
+                                            window.location.assign('<?php echo get_permalink( get_page_by_title("Chat") ); ?>');
                                         }else{
                                             $('#bpic_message_form').show();
                                             $('#chat_container').html(data);
@@ -94,6 +92,7 @@
                                 var message = $('#bpic_message').val();
                                 if(message !== ''){
                     				$.post('<?php echo $bpic->set_url("action"); ?>insert&cid=' + cid, {message: message}, function(data){
+                                        $('.bpic-no-messages').remove();
                                         $('#bpic_message').val('');
                     					$('#chat_container').prepend(data);
                     				});
@@ -108,7 +107,7 @@
             }
         }else{
             $bpic->start_conversation(bp_loggedin_user_id(), get_query_var('sc'));
-            die();
+            die;
         }
     }else{
         $bpic->user_search($_POST);

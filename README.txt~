@@ -1,0 +1,51 @@
+=== BuddyPress Instant Chat ===
+
+Contributors: richardphelps
+Donate link: http://www.iamrichardphelps.com
+Tags: buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
+Requires at least: 3.0.1
+Tested up to: 4.5.2
+Stable tag: 0.9
+License: GPLv2
+License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+
+Instant chat plugin for BuddyPress allowing user to connect and talk in real time.
+
+== Description ==
+
+This plugin allows users to chat in real time using AJAX. Users can connect with any other users.
+
+== Installation ==
+
+1. Plugin settings page.
+
+= Upload Manually =
+
+1. Download and unzip the plugin
+2. Upload the 'bp-instant-chat' folder to the 'wp-content/plugins' directory.
+3. In the admin area, find the plugin named 'BuddyPress Instant Chat' and click 'activate'.
+
+= Install Through WordPress Admin =
+
+1. In the WordPress admin area, go to 'Plugins > Add New'.
+2. Search for 'BuddyPress Instant Chat' and click 'Install Now' then when prompted - click 'Activate Plugin'.
+
+== Frequently Asked Questions ==
+
+Where can I set the dimensions of the avatar for messages?
+
+- If you go to the WordPress admin and click the tab at the bottom of the black bar with the text 'BuddyPress Instant Chat'.
+
+== Screenshots ==
+
+1. The plugin settings page.
+
+== Changelog ==
+
+= 1.0 =
+
+* Launch of the plugin
+
+== Upgrade Notice ==
+
+* Version 1.0 is working on WordPress version 4.5.2
