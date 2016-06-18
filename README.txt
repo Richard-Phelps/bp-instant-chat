@@ -3,7 +3,7 @@
 Contributors: richardphelps
 Donate link: http://www.iamrichardphelps.com
 Tags: buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
-Requires at least: 3.0.1
+Requires at least: 3.9
 Tested up to: 4.5.2
 Stable tag: 0.9
 License: GPLv2
@@ -16,8 +16,6 @@ Instant chat plugin for BuddyPress allowing user to connect and talk in real tim
 This plugin allows users to chat in real time using AJAX. Users can connect with any other users.
 
 == Installation ==
-
-1. Plugin settings page.
 
 = Upload Manually =
 
