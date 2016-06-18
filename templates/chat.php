@@ -17,8 +17,6 @@
 
     get_header();
 
-    $conversations = $bpic->get_conversations();
-
     if(!get_query_var('sc') && !get_query_var('cid')){
         ?>
             <form method="POST">
@@ -33,10 +31,16 @@
         if(!get_query_var('sc')){
             // Check if user has selected a chat and if not then continue
             if(!get_query_var('cid')){
-                if($conversations){
-                    // ENTER CODE TO GET CONVERSATIONS
+                if($bpic->user_has_chats()){
+                    ?>
+                        <h3 class="bpic-conversations-title"><?php _e('Your Chats', 'bpic'); ?></h2>
+                        <div class="bpic-chat-container"><?php $bpic->get_conversations(); ?></div>
+                    <?php
                 }else{
-                    _e('<p>You haven\'t started any conversations yet.</p>', 'bpic');
+                    ?>
+                        <h3 class="bpic-conversations-title"><?php _e('Your Chats', 'bpic'); ?></h2>
+                        <p><?php _e('You haven\'t started chatting with anybody yet.', 'bpic'); ?></p>
+                    <?php
                 }
             }else{
                 ?>

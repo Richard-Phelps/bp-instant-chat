@@ -254,21 +254,86 @@
             }
 
             /**
+        	 * Return true is user has chats.
+        	 *
+        	 * @since     1.1
+        	 */
+            public function user_has_chats()
+            {
+                global $wpdb;
+
+                $conversation_count = $wpdb->get_results("SELECT COUNT(*) AS count FROM $this->conversation_table WHERE user_one = '" . bp_loggedin_user_id() . "' OR user_two = '" . bp_loggedin_user_id() . "'");
+
+                if ($conversation_count[0]->count !== 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            /**
+             * Return information about a conversation.
+             *
+             * @since     1.1
+             * @param     int     $conversation_id     The ID for the conversation to return information for.
+             */
+            public function get_conversation_data($conversation_id)
+            {
+                global $wpdb;
+
+                $information = array();
+
+                $check_user_one = $wpdb->get_results("SELECT * FROM $this->conversation_table WHERE id = '$conversation_id' AND user_one = '" . bp_loggedin_user_id() . "'");
+                $check_user_two = $wpdb->get_results("SELECT * FROM $this->conversation_table WHERE id = '$conversation_id' AND user_two = '" . bp_loggedin_user_id() . "'");
+
+                if (!empty($check_user_one)) {
+                    $information['user_one'] = bp_loggedin_user_id();
+                    $other_user = $information['user_two'] = $check_user_one[0]->user_two;
+                } else if (!empty($check_user_two)) {
+                    $other_user = $information['user_one'] = $check_user_two[0]->user_one;
+                    $information['user_two'] = bp_loggedin_user_id();
+                }
+
+                $user = $wpdb->get_results("SELECT * FROM wp_users WHERE ID = '$other_user'");
+
+                $name_display = get_option($this->plugin_prefix . 'name_display');
+                if ($name_display == 'user_firstname') {
+                    $information['other_user_name'] = get_user_meta($other_user, 'first_name', true);
+                } else {
+                    $information['other_user_name'] = $user[0]->$name_display;
+                }
+
+                return $information;
+            }
+
+            /**
         	 * Get all of the conversations and return as an array.
         	 *
-        	 * @since     1.0
+        	 * @since     1.1
         	 */
             public function get_conversations()
             {
                 global $wpdb;
 
-                $conversation_count = $wpdb->get_results("SELECT COUNT(*) AS count FROM $this->conversation_table WHERE user_one = '" . bp_loggedin_user_id() . "' OR user_two = '" . bp_loggedin_user_id() . "'");
                 $conversations = $wpdb->get_results("SELECT * FROM $this->conversation_table WHERE user_one = '" . bp_loggedin_user_id() . "' OR user_two = '" . bp_loggedin_user_id() . "'");
 
-                if($conversation_count[0]->count !== 0){
-                    // NEED TO REPLACE LINE BELOW WITH ACTUAL CONVERSATIONS ARRAY (LAST MESSAGE ID, USER TWO ETC.)
-                    return true;
+                foreach ($conversations as $conversation)
+                {
+                    $conversation_id = $conversation->id;
+                    $conversation_data = $this->get_conversation_data($conversation_id);
+
+                    echo '<a href="#" class="continue-chat" conversation-id="' . $conversation_id . '"><p>' .  $conversation_data['other_user_name'] . '</p></a>';
                 }
+                ?>
+                    <script>
+                        (function($){
+                            $('.continue-chat').click(function(){
+                                var conversation = $(this).attr('conversation-id');
+                                window.location.assign('<?php echo $this->set_url("cid"); ?>' + conversation);
+                            });
+                        })(jQuery);
+                    </script>
+                <?php
             }
 
             /**
@@ -298,7 +363,7 @@
 
                 $query = $post[$this->plugin_prefix . 'user'];
                 // Search for users
-                $users = $wpdb->get_results("SELECT ID, display_name, user_nicename
+                $users = $wpdb->get_results("SELECT *
                     FROM wp_users
                     WHERE (display_name LIKE '%$query%' OR user_nicename LIKE '%$query%')
                     AND ID != '" . bp_loggedin_user_id() . "'
@@ -313,10 +378,22 @@
                             OR (user_one = '$user->ID' AND user_two = '$loggedin_user')
                         ");
 
+                        $conversation_id = $wpdb->get_results("SELECT id
+                            FROM $this->conversation_table
+                            WHERE (user_one = '$loggedin_user' AND user_two = '$user->ID')
+                            OR (user_one = '$user->ID' AND user_two = '$loggedin_user')
+                        ");
+
+                        $name_display = get_option($this->plugin_prefix . 'name_display');
+
+                        if ($name_display == 'user_firstname') {
+                            $user->$name_display = get_user_meta($user->ID, 'first_name', true);
+                        }
+
                         if ($check_conversation[0]->count == '0') {
-                            echo '<a href="#" class="start-chat" user-id="' . $user->ID . '"><p>' . __('Start chat with', 'bpic') . ' ' .  $user->display_name . ' (' . $user->user_nicename . ')</p></a>';
+                            echo '<a href="#" class="start-chat" user-id="' . $user->ID . '"><p>' . __('Start chat with', 'bpic') . ' ' .  $user->$name_display . '</p></a>';
                         } else {
-                            echo '<a href="#" class="continue-chat" user-id="' . $user->ID . '"><p>' . __('Continue chat with', 'bpic') . ' ' .  $user->display_name . ' (' . $user->user_nicename . ')</p></a>';
+                            echo '<a href="#" class="continue-chat" conversation-id="' . $conversation_id[0]->id . '"><p>' . __('Continue chat with', 'bpic') . ' ' .  $user->$name_display . '</p></a>';
                         }
                     }
                 } else {
@@ -335,8 +412,8 @@
                     <script>
                         (function($){
                             $('.continue-chat').click(function(){
-                                var user = $(this).attr('user-id');
-                                window.location.assign('<?php echo $this->set_url("cid"); ?>' + user);
+                                var conversation = $(this).attr('conversation-id');
+                                window.location.assign('<?php echo $this->set_url("cid"); ?>' + conversation);
                             });
                         })(jQuery);
                     </script>
