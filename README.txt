@@ -5,7 +5,7 @@ Donate link: http://www.iamrichardphelps.com
 Tags: buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
 Requires at least: 3.9
 Tested up to: 4.5.2
-Stable tag: 0.9
+Stable tag: 1.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -43,6 +43,11 @@ Where can I set the dimensions of the avatar for messages?
 = 1.0 =
 
 * Launch of the plugin
+
+= 1.1 =
+
+* Fixed bug where if a user tried to go to an existing chat, it would redirect them back to the main chat page
+* Added all chats on the main chat page
 
 == Upgrade Notice ==
 
