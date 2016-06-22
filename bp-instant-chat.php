@@ -4,7 +4,7 @@
     * Plugin URI:   http://iamrichardphelps.com/
     * Description:  Instant chat plugin for BuddyPress allowing user to connect and talk in real time.
     * Tags:         buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
-    * Version:      1.0
+    * Version:      1.1
     * Author:       Richard Phelps
     * Author URI:   http://iamrichardphelps.com/
     * License URI:  http://www.gnu.org/licenses/gpl-2.0.txt
@@ -18,7 +18,7 @@
         class BPIC
         {
             public $plugin_name = 'bp-instant-chat';
-            private $version = '1.0';
+            private $version = '1.1';
             public $conversation_table;
             public $message_table;
             private $charset_collate;

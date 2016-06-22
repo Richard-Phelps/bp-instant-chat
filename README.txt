@@ -52,3 +52,4 @@ Where can I set the dimensions of the avatar for messages?
 == Upgrade Notice ==
 
 * Version 1.0 is working on WordPress version 4.5.2
+* Version 1.1 is working on WordPress version 4.5.2
