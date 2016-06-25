@@ -4,8 +4,8 @@ Contributors: richardphelps
 Donate link: http://www.iamrichardphelps.com
 Tags: buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
 Requires at least: 3.9
-Tested up to: 4.5.2
-Stable tag: 1.0
+Tested up to: 4.5.3
+Stable tag: 1.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 

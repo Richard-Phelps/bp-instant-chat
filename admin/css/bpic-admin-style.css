@@ -1,0 +1,36 @@
+.bpic-error-message{
+    margin-bottom: 60px;
+}
+
+.bpic-left-msg-control-search, .bpic-right-msg-control-search, .bpic-submit-msg-control-search{
+    display: inline-block;
+}
+
+.bpic-left-msg-control-search{
+    padding-right: 10px;
+}
+
+.bpic-right-msg-control-search{
+    padding-left: 10px;
+}
+
+.bpic-left-msg-control-search label, .bpic-right-msg-control-search label{
+    vertical-align: top;
+}
+
+.bpic-submit-msg-control-search{
+    padding-left: 50px;
+}
+
+.bpic-submit-msg-control-search p{
+    padding: 0;
+    margin: 0;
+}
+
+.bpic-submit-msg-control-search input:active{
+    vertical-align: baseline !important;
+}
+
+.bpic-message-control-message{
+    font-size: 15px;
+}

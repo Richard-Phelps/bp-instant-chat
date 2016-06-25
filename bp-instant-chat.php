@@ -4,7 +4,7 @@
     * Plugin URI:   http://iamrichardphelps.com/
     * Description:  Instant chat plugin for BuddyPress allowing user to connect and talk in real time.
     * Tags:         buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
-    * Version:      1.1
+    * Version:      1.2
     * Author:       Richard Phelps
     * Author URI:   http://iamrichardphelps.com/
     * License URI:  http://www.gnu.org/licenses/gpl-2.0.txt
@@ -18,7 +18,7 @@
         class BPIC
         {
             public $plugin_name = 'bp-instant-chat';
-            private $version = '1.1';
+            private $version = '1.2';
             public $conversation_table;
             public $message_table;
             private $charset_collate;
@@ -108,7 +108,8 @@
                 }
 
                 // Enqueue styles / scripts
-                wp_enqueue_style('bpic-style', plugin_dir_url( __FILE__ ) . '/css/bpic-frontend-style.css', array(), '1.0');
+                wp_enqueue_style('bpic-frontend-style', plugin_dir_url( __FILE__ ) . '/css/bpic-frontend-style.css', array(), '1.0');
+                wp_enqueue_style('bpic-admin-style', plugin_dir_url( __FILE__ ) . '/admin/css/bpic-admin-style.css', array(), '1.0');
 
                 if(!get_option($this->plugin_prefix . 'avatar_width')){
                     update_option($this->plugin_prefix . 'avatar_width', 50);
@@ -703,6 +704,100 @@
                 }
 
                 $this->admin_success_notice( __('Settings successfully saved.', 'bpic') );
+            }
+
+            /**
+             * Checks if chat exists between 2 users and if it does it will return the chat id.
+             *
+             * @since     1.2
+             * @param     string     $user_one     The first user to search for.
+             * @param     string     $user_two     The second user to search for.
+             */
+            public function retrieve_chat($user_one, $user_two)
+            {
+                global $wpdb;
+
+                $check_user_one = $wpdb->get_results("SELECT * FROM wp_users WHERE ID = '$user_one' OR user_login = '$user_one' OR user_email = '$user_one'");
+                if (!$check_user_one[0]->ID) {
+                    return __('Sorry but user 1 could not be found!', 'bpic');
+                } else {
+                    $user_one = $check_user_one[0]->ID;
+                }
+
+                $check_user_two = $wpdb->get_results("SELECT * FROM wp_users WHERE ID = '$user_two' OR user_login = '$user_two' OR user_email = '$user_two'");
+                if (!$check_user_two[0]->ID) {
+                    return __('Sorry but user 2 could not be found!', 'bpic');
+                } else {
+                    $user_two = $check_user_two[0]->ID;
+                }
+
+                if ($check_user_one[0]->ID && $check_user_one[0]->ID) {
+                    $conversation = $wpdb->get_results("SELECT * FROM $this->conversation_table WHERE (user_one = '$user_one' AND user_two = '$user_two') OR (user_one = '$user_two' AND user_two = '$user_one')");
+                    if (!empty($conversation)) {
+                        return $conversation[0]->id;
+                    }
+                }
+            }
+
+            /**
+             * Main method for message control functionality.
+             *
+             * @since     1.2
+             * @param     string     $user_search_string     The string used to search for the user.
+             */
+            public function message_control_user_display($user_search_string)
+            {
+                if (get_user_by('ID', $user_search_string)) {
+                    $user_id = $user_search_string;
+                } else if (get_user_by('email', $user_search_string)) {
+                    $user_id = get_user_by('email', $user_search_string)->ID;
+                } else if (get_user_by('login', $user_search_string)) {
+                    $user_id = get_user_by('login', $user_search_string)->ID;
+                }
+
+                return array('ID' => $user_id, 'display' => $user_search_string);
+            }
+
+            /**
+             * Main method for message control functionality.
+             *
+             * @since     1.2
+             * @param     array     $post     The post array.
+             */
+            public function message_control($post)
+            {
+                global $wpdb;
+
+                $conversation_id = $this->retrieve_chat($post['user_one'], $post['user_two']);
+                if (!empty($post['user_one']) && !empty($post['user_two'])) {
+                    if (!$this->is_int($conversation_id)) {
+                        ?>
+                            <h2><?php echo $conversation_id; ?></h2>
+                        <?php
+                    } else {
+                        // Check what was entered for searching users (ID, Username or Email)
+                        $user_one = $this->message_control_user_display($post['user_one']);
+                        $user_two = $this->message_control_user_display($post['user_two']);
+
+                        $messages = $wpdb->get_results("SELECT * FROM $this->message_table WHERE conversation_id = '$conversation_id' ORDER BY `timestamp` DESC");
+                        foreach($messages as $message)
+                        {
+                            if ($message->message_from == $user_one['ID']) {
+                                $user_display = $user_one['display'];
+                            } else if ($message->message_from == $user_two['ID']) {
+                                $user_display = $user_two['display'];
+                            }
+
+                            ?>
+                                <p class="bpic-message-control-message"><b><?php echo esc_html($user_display); ?>:</b> <?php echo esc_html($message->message); ?> (<?php echo $message->timestamp; ?>)</p>
+                            <?php
+                        }
+                    }
+                } else {
+                    ?>
+                        <h2><?php _e('You must select 2 users', 'bpic'); ?></h2>
+                    <?php
+                }
             }
         }
     }
