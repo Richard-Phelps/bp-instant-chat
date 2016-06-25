@@ -4,7 +4,7 @@
     * Plugin URI:   http://iamrichardphelps.com/
     * Description:  Instant chat plugin for BuddyPress allowing user to connect and talk in real time.
     * Tags:         buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
-    * Version:      1.2
+    * Version:      1.2.1
     * Author:       Richard Phelps
     * Author URI:   http://iamrichardphelps.com/
     * License URI:  http://www.gnu.org/licenses/gpl-2.0.txt
@@ -18,7 +18,7 @@
         class BPIC
         {
             public $plugin_name = 'bp-instant-chat';
-            private $version = '1.2';
+            private $version = '1.2.1';
             public $conversation_table;
             public $message_table;
             private $charset_collate;
@@ -719,14 +719,14 @@
 
                 $check_user_one = $wpdb->get_results("SELECT * FROM wp_users WHERE ID = '$user_one' OR user_login = '$user_one' OR user_email = '$user_one'");
                 if (!$check_user_one[0]->ID) {
-                    return __('Sorry but user 1 could not be found!', 'bpic');
+                    return __('Sorry but user 1 could not be found', 'bpic');
                 } else {
                     $user_one = $check_user_one[0]->ID;
                 }
 
                 $check_user_two = $wpdb->get_results("SELECT * FROM wp_users WHERE ID = '$user_two' OR user_login = '$user_two' OR user_email = '$user_two'");
                 if (!$check_user_two[0]->ID) {
-                    return __('Sorry but user 2 could not be found!', 'bpic');
+                    return __('Sorry but user 2 could not be found', 'bpic');
                 } else {
                     $user_two = $check_user_two[0]->ID;
                 }
@@ -735,6 +735,8 @@
                     $conversation = $wpdb->get_results("SELECT * FROM $this->conversation_table WHERE (user_one = '$user_one' AND user_two = '$user_two') OR (user_one = '$user_two' AND user_two = '$user_one')");
                     if (!empty($conversation)) {
                         return $conversation[0]->id;
+                    } else {
+                        return __("A chat hasn't been started between these users yet", "bpic");
                     }
                 }
             }

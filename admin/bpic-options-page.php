@@ -86,6 +86,7 @@
         <form method="post" action="<?php echo site_url(); ?>/wp-admin/admin.php?page=<?php echo $this->plugin_name; ?>&view=msg_control">
             <input type="hidden" name="form" value="<?php echo $this->plugin_prefix; ?>msg_control">
             <h2><?php _e('Message Control', 'bpic'); ?></h2>
+            <p><?php _e('Access to messages for any chat.', 'bpic'); ?></p>
             <div class="bpic-left-msg-control-search">
                 <label for="user_one"><b><?php _e('User 1', 'bpic'); ?></b></label>
                 <input type="text" class="regular-text" name="user_one" id="user_one" placeholder="<?php _e('Search users by their ID, Username or Email'); ?>" onfocus="this.placeholder=''" onblur="this.placeholder='<?php _e('Search users by their ID, Username or Email'); ?>'" <?php if($_POST['user_one']){ ?>value="<?php echo esc_html($_POST['user_one']); ?>"<?php } ?> />
