@@ -2,9 +2,9 @@
 # This file is distributed under the same license as the BuddyPress Instant Chat package.
 msgid ""
 msgstr ""
-"Project-Id-Version: BuddyPress Instant Chat 1.2.1\n"
+"Project-Id-Version: BuddyPress Instant Chat 1.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/bp-instant-chat\n"
-"POT-Creation-Date: 2016-06-25 19:34:35+00:00\n"
+"POT-Creation-Date: 2016-07-02 14:17:20+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -16,18 +16,22 @@ msgstr ""
 msgid "Unfortunately you must be an admin to make changes on this page"
 msgstr ""
 
-#. #-#-#-#-#  plugin.pot (BuddyPress Instant Chat 1.2.1)  #-#-#-#-#
+#. #-#-#-#-#  plugin.pot (BuddyPress Instant Chat 1.3)  #-#-#-#-#
 #. Plugin Name of the plugin/theme
-#: admin/bpic-options-page.php:22 bp-instant-chat.php:157
+#: admin/bpic-options-page.php:22 bp-instant-chat.php:161
 msgid "BuddyPress Instant Chat"
 msgstr ""
 
-#: admin/bpic-options-page.php:34 admin/bpic-options-page.php:41
+#: admin/bpic-options-page.php:34
 msgid "Settings"
 msgstr ""
 
-#: admin/bpic-options-page.php:35 admin/bpic-options-page.php:88
+#: admin/bpic-options-page.php:35 admin/bpic-options-page.php:108
 msgid "Message Control"
+msgstr ""
+
+#: admin/bpic-options-page.php:41
+msgid "Messages"
 msgstr ""
 
 #: admin/bpic-options-page.php:46
@@ -58,82 +62,110 @@ msgstr ""
 msgid "First Name"
 msgstr ""
 
-#: admin/bpic-options-page.php:89
+#: admin/bpic-options-page.php:83
+msgid "Friends"
+msgstr ""
+
+#: admin/bpic-options-page.php:88
+msgid "Enable Friends Only"
+msgstr ""
+
+#: admin/bpic-options-page.php:98
+msgid ""
+"For this option to work you need to have the Friend Connections option "
+"enabled in the BuddyPress settings."
+msgstr ""
+
+#: admin/bpic-options-page.php:109
 msgid "Access to messages for any chat."
 msgstr ""
 
-#: admin/bpic-options-page.php:91
+#: admin/bpic-options-page.php:111
 msgid "User 1"
 msgstr ""
 
-#: admin/bpic-options-page.php:92 admin/bpic-options-page.php:96
+#: admin/bpic-options-page.php:112 admin/bpic-options-page.php:116
 msgid "Search users by their ID, Username or Email"
 msgstr ""
 
-#: admin/bpic-options-page.php:95
+#: admin/bpic-options-page.php:115
 msgid "User 2"
 msgstr ""
 
-#: bp-instant-chat.php:145
+#: bp-instant-chat.php:149
 msgid ""
 "BuddyPress Instant Chat requires <b>BuddyPress 2.0</b>, please ensure that "
 "BuddyPress is installed and up to date."
 msgstr ""
 
-#: bp-instant-chat.php:395
+#: bp-instant-chat.php:342 templates/chat.php:42
+msgid "You haven't started chatting with anybody yet."
+msgstr ""
+
+#: bp-instant-chat.php:437
 msgid "Start chat with"
 msgstr ""
 
-#: bp-instant-chat.php:397
+#: bp-instant-chat.php:439
 msgid "Continue chat with"
 msgstr ""
 
-#: bp-instant-chat.php:401
+#: bp-instant-chat.php:444
+msgid "<p>Sorry but you don't have any friends by that name!</p>"
+msgstr ""
+
+#: bp-instant-chat.php:446
 msgid "<p>Sorry but we couldn't find any users by that name!</p>"
 msgstr ""
 
-#: bp-instant-chat.php:520 bp-instant-chat.php:596
+#: bp-instant-chat.php:566 bp-instant-chat.php:642
 msgid "Delivered"
 msgstr ""
 
-#: bp-instant-chat.php:522
+#: bp-instant-chat.php:568
 msgid "Read"
 msgstr ""
 
-#: bp-instant-chat.php:540
+#: bp-instant-chat.php:586
 msgid "There're currently no messages associated with this chat!"
 msgstr ""
 
-#: bp-instant-chat.php:665
+#: bp-instant-chat.php:711
 msgid "Message avatar height must be a number!"
 msgstr ""
 
-#: bp-instant-chat.php:669
+#: bp-instant-chat.php:715
 msgid "Message avatar width must be a number!"
 msgstr ""
 
-#: bp-instant-chat.php:673
+#: bp-instant-chat.php:719
 msgid "All of the fields must be populated!"
 msgstr ""
 
-#: bp-instant-chat.php:706
+#: bp-instant-chat.php:760
 msgid "Settings successfully saved."
 msgstr ""
 
-#: bp-instant-chat.php:722
+#: bp-instant-chat.php:776
 msgid "Sorry but user 1 could not be found"
 msgstr ""
 
-#: bp-instant-chat.php:729
+#: bp-instant-chat.php:783
 msgid "Sorry but user 2 could not be found"
 msgstr ""
 
-#: bp-instant-chat.php:739
+#: bp-instant-chat.php:793
 msgid "A chat hasn't been started between these users yet"
 msgstr ""
 
-#: bp-instant-chat.php:800
+#: bp-instant-chat.php:854
 msgid "You must select 2 users"
+msgstr ""
+
+#: bp-instant-chat.php:868
+msgid ""
+"<b>BuddyPress friend connections</b> must be enabled for <b>BuddyPress "
+"Instant Chat friends only</b> setting to work"
 msgstr ""
 
 #: templates/chat.php:23
@@ -146,10 +178,6 @@ msgstr ""
 
 #: templates/chat.php:36 templates/chat.php:41
 msgid "Your Chats"
-msgstr ""
-
-#: templates/chat.php:42
-msgid "You haven't started chatting with anybody yet."
 msgstr ""
 
 #: templates/chat.php:48
@@ -168,9 +196,9 @@ msgstr ""
 msgid "You must enter some text before you can send your message"
 msgstr ""
 
-#. #-#-#-#-#  plugin.pot (BuddyPress Instant Chat 1.2.1)  #-#-#-#-#
+#. #-#-#-#-#  plugin.pot (BuddyPress Instant Chat 1.3)  #-#-#-#-#
 #. Plugin URI of the plugin/theme
-#. #-#-#-#-#  plugin.pot (BuddyPress Instant Chat 1.2.1)  #-#-#-#-#
+#. #-#-#-#-#  plugin.pot (BuddyPress Instant Chat 1.3)  #-#-#-#-#
 #. Author URI of the plugin/theme
 msgid "http://iamrichardphelps.com/"
 msgstr ""
