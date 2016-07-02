@@ -38,7 +38,7 @@
     <?php if (!$_GET['view'] || $_GET['view'] == 'settings') { ?>
         <form method="post" action="<?php echo site_url(); ?>/wp-admin/admin.php?page=<?php echo $this->plugin_name; ?>">
             <input type="hidden" name="form" value="<?php echo $this->plugin_prefix; ?>options">
-            <h2><?php _e('Settings', 'bpic'); ?></h2>
+            <h2><?php _e('Messages', 'bpic'); ?></h2>
             <table class="form-table">
                 <tbody>
                     <tr>
@@ -76,6 +76,26 @@
                                 <option value="display_name" <?php echo $this->option_check($this->plugin_prefix . 'name_display', 'display_name'); ?>><?php _e('Display Name', 'bpic'); ?></option>
                                 <option value="user_firstname" <?php echo $this->option_check($this->plugin_prefix . 'name_display', 'user_firstname'); ?>><?php _e('First Name', 'bpic'); ?></option>
                             </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <h2><?php _e('Friends', 'bpic'); ?></h2>
+            <table class="form-table">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            <label for="friends_only"><?php _e('Enable Friends Only', 'bpic'); ?></label>
+                        </th>
+                        <td>
+                            <?php
+                                $this->check_buddypress_setting('friends');
+                                if (get_option($this->plugin_prefix . 'friends_only') == 1) {
+                                    $checked = 'checked="checked"';
+                                }
+                            ?>
+                            <input type="checkbox" name="friends_only" id="friends_only" value="enabled" <?php echo $checked; ?>>
+                            <p><i><?php _e('For this option to work you need to have the Friend Connections option enabled in the BuddyPress settings.', 'bpic'); ?></i></p>
                         </td>
                     </tr>
                 </tbody>

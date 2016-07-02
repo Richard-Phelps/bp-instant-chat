@@ -39,7 +39,7 @@
                 }else{
                     ?>
                         <h3 class="bpic-conversations-title"><?php _e('Your Chats', 'bpic'); ?></h2>
-                        <p><?php _e('You haven\'t started chatting with anybody yet.', 'bpic'); ?></p>
+                        <p><?php _e("You haven't started chatting with anybody yet.", "bpic"); ?></p>
                     <?php
                 }
             }else{

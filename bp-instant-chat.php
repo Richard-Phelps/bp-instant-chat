@@ -4,7 +4,7 @@
     * Plugin URI:   http://iamrichardphelps.com/
     * Description:  Instant chat plugin for BuddyPress allowing user to connect and talk in real time.
     * Tags:         buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
-    * Version:      1.2.1
+    * Version:      1.3
     * Author:       Richard Phelps
     * Author URI:   http://iamrichardphelps.com/
     * License URI:  http://www.gnu.org/licenses/gpl-2.0.txt
@@ -18,7 +18,7 @@
         class BPIC
         {
             public $plugin_name = 'bp-instant-chat';
-            private $version = '1.2.1';
+            private $version = '1.3';
             public $conversation_table;
             public $message_table;
             private $charset_collate;
@@ -121,6 +121,10 @@
 
                 if(!get_option($this->plugin_prefix . 'name_display')){
                     update_option($this->plugin_prefix . 'name_display', 'user_login');
+                }
+
+                if(!get_option($this->plugin_prefix . 'friends_only')){
+                    update_option($this->plugin_prefix . 'name_display', 0);
                 }
             }
 
@@ -295,6 +299,7 @@
                     $information['user_two'] = bp_loggedin_user_id();
                 }
 
+                $information['other_user_id'] = $other_user;
                 $user = $wpdb->get_results("SELECT * FROM wp_users WHERE ID = '$other_user'");
 
                 $name_display = get_option($this->plugin_prefix . 'name_display');
@@ -303,6 +308,9 @@
                 } else {
                     $information['other_user_name'] = $user[0]->$name_display;
                 }
+
+                $check_friendship = $wpdb->get_row("SELECT COUNT(*) as count FROM wp_bp_activity WHERE type = 'friendship_created' AND (user_id = '" . bp_loggedin_user_id() . "' AND secondary_item_id = '$other_user') OR (user_id = '$other_user' AND secondary_item_id = '" . bp_loggedin_user_id() . "')");
+                $information['friends'] = $check_friendship->count;
 
                 return $information;
             }
@@ -318,12 +326,20 @@
 
                 $conversations = $wpdb->get_results("SELECT * FROM $this->conversation_table WHERE user_one = '" . bp_loggedin_user_id() . "' OR user_two = '" . bp_loggedin_user_id() . "'");
 
+                $chat_count = 0;
                 foreach ($conversations as $conversation)
                 {
                     $conversation_id = $conversation->id;
                     $conversation_data = $this->get_conversation_data($conversation_id);
 
-                    echo '<a href="#" class="continue-chat" conversation-id="' . $conversation_id . '"><p>' .  $conversation_data['other_user_name'] . '</p></a>';
+                    if ( (bp_is_active('friends') && $conversation_data['friends'] == 1) || !bp_is_active('friends')) {
+                        $chat_count++;
+                        echo '<a href="#" class="continue-chat" conversation-id="' . $conversation_id . '"><p>' .  $conversation_data['other_user_name'] . '</p></a>';
+                    }
+                }
+
+                if ($chat_count == 0) {
+                    echo '<p>' . __("You haven't started chatting with anybody yet.", "bpic") . '</p>';
                 }
                 ?>
                     <script>
@@ -363,15 +379,41 @@
                 global $wpdb;
 
                 $query = $post[$this->plugin_prefix . 'user'];
-                // Search for users
-                $users = $wpdb->get_results("SELECT *
-                    FROM wp_users
-                    WHERE (display_name LIKE '%$query%' OR user_nicename LIKE '%$query%')
-                    AND ID != '" . bp_loggedin_user_id() . "'
-                ");
+
+                if (bp_is_active('friends') && get_option($this->plugin_prefix . 'friends_only') == 1) {
+                    // Array to store friends for logged in user
+                    $friends = array();
+                    $get_friends = $wpdb->get_results("SELECT * FROM wp_bp_activity WHERE type = 'friendship_created' AND user_id = '" . bp_loggedin_user_id() . "'");
+                    foreach ($get_friends as $friendship) {
+                        $friends[] = $friendship->secondary_item_id;
+                    }
+
+                    $get_friends = $wpdb->get_results("SELECT * FROM wp_bp_activity WHERE type = 'friendship_created' AND secondary_item_id = '" . bp_loggedin_user_id() . "'");
+                    foreach ($get_friends as $friendship) {
+                        $friends[] = $friendship->user_id;
+                    }
+
+                    $friends = implode(',', $friends);
+
+                    // Search for users
+                    $users = $wpdb->get_results("SELECT *
+                        FROM wp_users
+                        WHERE (display_name LIKE '%$query%' OR user_nicename LIKE '%$query%')
+                        AND ID IN ($friends)
+                        AND ID != '" . bp_loggedin_user_id() . "'
+                    ");
+                } else {
+                    // Search for users
+                    $users = $wpdb->get_results("SELECT *
+                        FROM wp_users
+                        WHERE (display_name LIKE '%$query%' OR user_nicename LIKE '%$query%')
+                        AND ID != '" . bp_loggedin_user_id() . "'
+                    ");
+                }
 
                 if ($users) {
-                    foreach ($users as $user) {
+                    foreach ($users as $user)
+                    {
                         $loggedin_user = bp_loggedin_user_id();
                         $check_conversation = $wpdb->get_results("SELECT COUNT(*) AS count
                             FROM $this->conversation_table
@@ -398,7 +440,11 @@
                         }
                     }
                 } else {
-                    _e('<p>Sorry but we couldn\'t find any users by that name!</p>', 'bpic');
+                    if (bp_is_active('friends') && get_option($this->plugin_prefix . 'friends_only') == 1) {
+                        _e("<p>Sorry but you don't have any friends by that name!</p>", "bpic");
+                    } else {
+                        _e("<p>Sorry but we couldn't find any users by that name!</p>", "bpic");
+                    }
                 }
 
                 ?>
@@ -659,7 +705,7 @@
                         // Make sure avatar height is a number
                         if ( $this->is_int($post['avatar_height']) ) {
 
-                            $this->save_options($post);
+                                $this->save_options($post);
 
                         } else {
                             $this->admin_error_notice( __('Message avatar height must be a number!', 'bpic') );
@@ -684,9 +730,16 @@
             {
                 $name_options = array('user_login', 'user_email', 'display_name', 'user_firstname');
 
-                $avatar_width = $this->int_value($_POST['avatar_width']);
-                $avatar_height = $this->int_value($_POST['avatar_height']);
-                $name_display = esc_html($_POST['name_display']);
+                $avatar_width = $this->int_value($post['avatar_width']);
+                $avatar_height = $this->int_value($post['avatar_height']);
+                $name_display = esc_html($post['name_display']);
+                if (!$post['friends_only']) {
+                    $friends_only = 0;
+                } else {
+                    if ($post['friends_only'] == 'enabled') {
+                        $friends_only = 1;
+                    }
+                }
 
                 if (!in_array($name_display, $name_options)) {
                     $name_display = 'user_login';
@@ -695,7 +748,8 @@
                 $options_update_array = array(
                     $this->plugin_prefix . 'avatar_width' => $avatar_width,
                     $this->plugin_prefix . 'avatar_height' => $avatar_height,
-                    $this->plugin_prefix . 'name_display' => $name_display
+                    $this->plugin_prefix . 'name_display' => $name_display,
+                    $this->plugin_prefix . 'friends_only' => $friends_only
                 );
 
                 foreach($options_update_array as $option => $value)
@@ -799,6 +853,19 @@
                     ?>
                         <h2><?php _e('You must select 2 users', 'bpic'); ?></h2>
                     <?php
+                }
+            }
+
+            /**
+             * Check if BuddyPress settings are enabled or disabled.
+             *
+             * @since     1.3
+             * @param     string     $setting     The BuddyPress setting to check.
+             */
+            public function check_buddypress_setting($setting)
+            {
+                if (!bp_is_active($setting)) {
+                    $this->admin_error_notice( __('<b>BuddyPress friend connections</b> must be enabled for <b>BuddyPress Instant Chat friends only</b> setting to work', 'bpic') );
                 }
             }
         }
