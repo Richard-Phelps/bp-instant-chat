@@ -20,6 +20,7 @@
 ?>
 <div class="wrap">
     <h2><?php _e('BuddyPress Instant Chat', 'bpic'); ?></h2>
+    <h3><?php echo __('You can use the', 'bpic') . ' [bp-instant-chat] ' . __('shortcode on any page to display the plugin chat page.', 'bpic'); ?></h3>
 
     <?php
         if (!$_GET['view'] || $_GET['view'] == 'settings') {
@@ -89,7 +90,7 @@
                         </th>
                         <td>
                             <?php
-                                $this->check_buddypress_setting('friends');
+                                $this->check_buddypress_setting('friends', $this->plugin_prefix . 'friends_only');
                                 if (get_option($this->plugin_prefix . 'friends_only') == 1) {
                                     $checked = 'checked="checked"';
                                 }

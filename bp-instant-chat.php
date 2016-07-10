@@ -4,7 +4,7 @@
     * Plugin URI:   http://iamrichardphelps.com/
     * Description:  Instant chat plugin for BuddyPress allowing user to connect and talk in real time.
     * Tags:         buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
-    * Version:      1.3
+    * Version:      1.4
     * Author:       Richard Phelps
     * Author URI:   http://iamrichardphelps.com/
     * License URI:  http://www.gnu.org/licenses/gpl-2.0.txt
@@ -18,7 +18,7 @@
         class BPIC
         {
             public $plugin_name = 'bp-instant-chat';
-            private $version = '1.3';
+            private $version = '1.4';
             public $conversation_table;
             public $message_table;
             private $charset_collate;
@@ -58,6 +58,13 @@
                 // Fix for headers already sent message when trying to use wp_redirect
                 add_action( 'init', array($this, 'output_buffering_start') );
                 add_action( 'wp_footer', array($this, 'output_buffering_end') );
+
+                // Shortcodes
+                add_shortcode( 'bp-instant-chat', array($this, 'chat_page_content') );
+
+                if($_GET['action']){
+                    add_action( 'bp_init', array($this, 'chat_page_actions') );
+                }
             }
 
             /**
@@ -96,7 +103,7 @@
                 // Create chat page
                 $chat_page = array(
                     'post_title' => 'Chat',
-                    'post_content' => '',
+                    'post_content' => '[bp-instant-chat]',
                 	'post_status' => 'publish',
                 	'post_type' => 'page',
                 	'post_author' => $wpdb->user_ID,
@@ -115,15 +122,15 @@
                     update_option($this->plugin_prefix . 'avatar_width', 50);
                 }
 
-                if(!get_option($this->plugin_prefix . 'avatar_height')){
+                if (!get_option($this->plugin_prefix . 'avatar_height')) {
                     update_option($this->plugin_prefix . 'avatar_height', 50);
                 }
 
-                if(!get_option($this->plugin_prefix . 'name_display')){
+                if (!get_option($this->plugin_prefix . 'name_display')) {
                     update_option($this->plugin_prefix . 'name_display', 'user_login');
                 }
 
-                if(!get_option($this->plugin_prefix . 'friends_only')){
+                if (!get_option($this->plugin_prefix . 'friends_only')) {
                     update_option($this->plugin_prefix . 'name_display', 0);
                 }
             }
@@ -362,9 +369,9 @@
             public function set_url($get_variable)
             {
                 if (get_query_var('page_id')) {
-                    return get_permalink( get_page_by_title('Chat') ) . '&' . $get_variable . '=';
+                    return get_permalink( get_the_id() ) . '&' . $get_variable . '=';
                 } else {
-                    return get_permalink( get_page_by_title('Chat') ) . '?' . $get_variable . '=';
+                    return get_permalink( get_the_id() ) . '?' . $get_variable . '=';
                 }
             }
 
@@ -862,10 +869,152 @@
              * @since     1.3
              * @param     string     $setting     The BuddyPress setting to check.
              */
-            public function check_buddypress_setting($setting)
+            public function check_buddypress_setting($setting, $bpic_setting)
             {
-                if (!bp_is_active($setting)) {
+
+                if (!bp_is_active($setting) && get_option($bpic_setting) == 1) {
                     $this->admin_error_notice( __('<b>BuddyPress friend connections</b> must be enabled for <b>BuddyPress Instant Chat friends only</b> setting to work', 'bpic') );
+                }
+            }
+
+            /**
+             * Chat page actions.
+             *
+             * @since     1.4
+             */
+            public function chat_page_actions()
+            {
+                // If ajax call to retrieve messages
+                if($_GET['action'] && $_GET['action'] == 'retrieve'){
+                    $this->retrieve_messages($_GET['cid']);
+                    die;
+                }
+
+                // If ajax call to send new message
+                if($_GET['action'] && $_GET['action'] == 'insert'){
+                    $this->insert_message($_GET['cid'], $_POST);
+                    die;
+                }
+            }
+
+            /**
+             * Chat page code for shortcode.
+             *
+             * @since     1.4
+             */
+            public function chat_page_content()
+            {
+                $bpic = new BPIC;
+
+                $bpic->check_loggedin();
+
+                if (is_page('Chat')) {
+                    get_header();
+                }
+
+                if(!get_query_var('sc') && !get_query_var('cid')){
+                    ?>
+                        <form method="POST">
+                            <input type="text" name="bpic_user" class="bpic-user-search-input" value="<?php echo $_POST['bpic_user']; ?>" placeholder="<?php _e('Search for user by their name', 'bpic'); ?>" onfocus="this.placeholder=''" onblur="this.placeholder='<?php _e('Search for user by their name', 'bpic'); ?>'">
+                            <input type="submit" name="bpic_search" class="bpic-user-search-button" value="<?php _e('Search', 'bpic'); ?>">
+                        </form>
+                    <?php
+                }
+
+                if(!$_POST){
+                    // Check if user has started conversation and if not then continue
+                    if(!get_query_var('sc')){
+                        // Check if user has selected a chat and if not then continue
+                        if(!get_query_var('cid')){
+                            if($bpic->user_has_chats()){
+                                ?>
+                                    <h3 class="bpic-conversations-title"><?php _e('Your Chats', 'bpic'); ?></h2>
+                                    <div class="bpic-chat-container"><?php $bpic->get_conversations(); ?></div>
+                                <?php
+                            }else{
+                                ?>
+                                    <h3 class="bpic-conversations-title"><?php _e('Your Chats', 'bpic'); ?></h2>
+                                    <p><?php _e("You haven't started chatting with anybody yet.", "bpic"); ?></p>
+                                <?php
+                            }
+                        }else{
+                            ?>
+                                <form class="bpic-message-form" id="bpic_message_form">
+                                    <textarea name="message" class="bpic-textarea" id="bpic_message" placeholder="<?php _e('Enter message to send...', 'bpic'); ?>" onfocus="this.placeholder=''" onblur="this.placeholder='<?php _e('Enter message to send...', 'bpic'); ?>'"></textarea>
+                                    <input type="submit" class="bpic-submit-message" value="<?php _e('Send Message', 'bpic'); ?>">
+                                </form>
+                                <div class="bpic-error-container">&nbsp;</div>
+                                <div class="chat-container" id="chat_container">
+                                    <div class="bpic-text-center">
+                                        <img src="<?php echo str_replace('/templates', '', plugin_dir_url( __FILE__ )) . '/images/loading_spinner.gif'; ?>" class="bpic-loading-spinner" alt="<?php _e('Loading', 'bpic'); ?>">
+                                    </div>
+                                </div>
+                                <script type="text/javascript">
+                                    (function($){
+                                    	var update_time = 2;
+                                       	var running = false;
+                                        var count_secs = 0;
+                                        function chat_update(){
+                                            if(count_secs == update_time){
+                                                load_message();
+                                            }else{
+                                                count_secs++;
+                                            }
+                                            if(running == true){
+                                                setTimeout(chat_update, 1000);
+                                            }
+                                        }
+
+                                		function load_message(){
+                                			$.ajax({
+                                				url: '<?php echo $bpic->set_url("action"); ?>retrieve&cid=<?php echo get_query_var("cid"); ?>',
+                                                //url: '<?php echo site_url(); ?>/wp-admin/admin.php?page=bp-instant-chat',
+                                				cache: false,
+                                				success: function(data){
+                                                    if(data == 'error_1'){
+                                                        window.location.assign('<?php echo get_permalink( get_the_id() ); ?>');
+                                                    }else{
+                                                        $('#bpic_message_form').show();
+                                                        $('#chat_container').html(data);
+                                                    }
+                            						count_secs = 0;
+                            						setTimeout(load_message, 1000 * update_time);
+                                				},
+                                			});
+                                		}
+
+                                        load_message();
+                                        running = true;
+
+                            			$('#bpic_message_form').submit(function(){
+                                            $('.bpic-error-container').html();
+                                            var cid = <?php echo get_query_var('cid'); ?>;
+                                            var message = $('#bpic_message').val();
+                                            if(message !== ''){
+                                				$.post('<?php echo $bpic->set_url("action"); ?>insert&cid=' + cid, {message: message}, function(data){
+                                                    $('.bpic-no-messages').remove();
+                                                    $('#bpic_message').val('');
+                                					$('#chat_container').prepend(data);
+                                				});
+                                            }else{
+                                                $('.bpic-error-container').html('<p class="bpic-error-message"><?php echo _e("You must enter some text before you can send your message"); ?></p>');
+                                            }
+                            				return false;
+                            			});
+                                    })(jQuery);
+                                </script>
+                            <?php
+                        }
+                    }else{
+                        $bpic->start_conversation(bp_loggedin_user_id(), get_query_var('sc'));
+                        die;
+                    }
+                }else{
+                    $bpic->user_search($_POST);
+                }
+
+                if (is_page('Chat')) {
+                    get_footer();
                 }
             }
         }
