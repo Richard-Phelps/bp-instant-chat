@@ -118,19 +118,19 @@
                 wp_enqueue_style('bpic-frontend-style', plugin_dir_url( __FILE__ ) . '/css/bpic-frontend-style.css', array(), '1.0');
                 wp_enqueue_style('bpic-admin-style', plugin_dir_url( __FILE__ ) . '/admin/css/bpic-admin-style.css', array(), '1.0');
 
-                if(!get_option($this->plugin_prefix . 'avatar_width')){
+                if (get_option($this->plugin_prefix . 'avatar_width') == '') {
                     update_option($this->plugin_prefix . 'avatar_width', 50);
                 }
 
-                if (!get_option($this->plugin_prefix . 'avatar_height')) {
+                if (get_option($this->plugin_prefix . 'avatar_height') == '') {
                     update_option($this->plugin_prefix . 'avatar_height', 50);
                 }
 
-                if (!get_option($this->plugin_prefix . 'name_display')) {
+                if (get_option($this->plugin_prefix . 'name_display') == '') {
                     update_option($this->plugin_prefix . 'name_display', 'user_login');
                 }
 
-                if (!get_option($this->plugin_prefix . 'friends_only')) {
+                if (get_option($this->plugin_prefix . 'friends_only') == '') {
                     update_option($this->plugin_prefix . 'name_display', 0);
                 }
             }
