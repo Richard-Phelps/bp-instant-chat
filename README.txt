@@ -73,7 +73,7 @@ Where can I set the dimensions of the avatar for messages?
 
 * Fixed bug where the name display setting could not be updated.
 * Fixed bug where certain wordpress tables couldn't be found in some queries because of the incorrect database prefix being used.
-* Added the ability to remove messages from a chat and add the messages back.
+* Added the ability to remove messages from a chat and add the messages back through message control in admin.
 
 == Upgrade Notice ==
 
