@@ -5,7 +5,7 @@ Donate link: http://www.iamrichardphelps.com
 Tags: buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
 Requires at least: 3.9
 Tested up to: 4.5.3
-Stable tag: 1.4
+Stable tag: 1.5
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -69,6 +69,12 @@ Where can I set the dimensions of the avatar for messages?
 * Fixed bug where friends only warning would show even if the settings in both plugins was disabled.
 * Add the ability to add the chat page on any page using a shortcode
 
+= 1.5 =
+
+* Fixed bug where the name display setting could not be updated.
+* Fixed bug where certain wordpress tables couldn't be found in some queries because of the incorrect database prefix being used.
+* Added the ability to remove messages from a chat and add the messages back.
+
 == Upgrade Notice ==
 
 * Version 1.0 is working on WordPress version 4.5.2
@@ -77,3 +83,4 @@ Where can I set the dimensions of the avatar for messages?
 * Version 1.2.1 is working on WordPress version 4.5.3
 * Version 1.3 is working on WordPress version 4.5.3
 * Version 1.4 is working on WordPress version 4.5.3
+* Version 1.5 is working on WordPress version 4.5.3

@@ -17,6 +17,13 @@
     if ($_POST['submit'] && $_POST['form'] == $this->plugin_prefix . 'options') {
         $this->options_validate($_POST);
     }
+
+    if ($_POST['submit'] && $_POST['message_control'] && $_GET['action']) {
+        switch ($_POST['action']) {
+            case 'remove_message': $this->message_action($_POST['message_id'], 'remove'); break;
+            case 'add_message': $this->message_action($_POST['message_id'], 'add'); break;
+        }
+    }
 ?>
 <div class="wrap">
     <h2><?php _e('BuddyPress Instant Chat', 'bpic'); ?></h2>
@@ -116,12 +123,12 @@
                 <label for="user_two"><b><?php _e('User 2', 'bpic'); ?></b></label>
                 <input type="text" class="regular-text" name="user_two" id="user_two" placeholder="<?php _e('Search users by their ID, Username or Email'); ?>" onfocus="this.placeholder=''" onblur="this.placeholder='<?php _e('Search users by their ID, Username or Email'); ?>'" <?php if($_POST['user_two']){ ?>value="<?php echo esc_html($_POST['user_two']); ?>"<?php } ?> />
             </div>
-            <div class="bpic-submit-msg-control-search"><?php submit_button(); ?></div>
-            <?php
-                if ($_POST['submit'] && $_POST['form'] == $this->plugin_prefix . 'msg_control') {
-                    $this->message_control($_POST);
-                }
-            ?>
+            <div class="bpic-submit-msg-control-search"><?php submit_button( __('Search', 'bpic') ); ?></div>
         </form>
+        <?php
+            if ($_POST['submit'] && $_POST['form'] == $this->plugin_prefix . 'msg_control') {
+                $this->message_control($_POST);
+            }
+        ?>
     <?php } ?>
 </div>

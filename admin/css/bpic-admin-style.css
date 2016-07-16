@@ -1,3 +1,7 @@
+.bpic-no-margin{
+    margin: 0;
+}
+
 .bpic-error-message{
     margin-bottom: 60px;
 }
@@ -31,6 +35,16 @@
     vertical-align: baseline !important;
 }
 
-.bpic-message-control-message{
+.bpic-message-control-table{
     font-size: 15px;
+    margin-top: 15px;
+}
+
+.bpic-message-control-table td{
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.bpic-middle-align{
+    vertical-align: middle;
 }

@@ -4,7 +4,7 @@
     * Plugin URI:   http://iamrichardphelps.com/
     * Description:  Instant chat plugin for BuddyPress allowing user to connect and talk in real time.
     * Tags:         buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
-    * Version:      1.4
+    * Version:      1.5
     * Author:       Richard Phelps
     * Author URI:   http://iamrichardphelps.com/
     * License URI:  http://www.gnu.org/licenses/gpl-2.0.txt
@@ -18,7 +18,7 @@
         class BPIC
         {
             public $plugin_name = 'bp-instant-chat';
-            private $version = '1.4';
+            private $version = '1.5';
             public $conversation_table;
             public $message_table;
             private $charset_collate;
@@ -75,6 +75,7 @@
             public function init()
             {
                 require_once(ABSPATH . 'wp-includes/pluggable.php');
+                require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
                 global $wpdb;
 
@@ -96,9 +97,25 @@
                     message longtext NOT NULL,
                     timestamp datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
                     status ENUM('0','1') DEFAULT '0' NOT NULL,
+                    removed ENUM('0', '1') DEFAULT '0' NOT NULL,
                     UNIQUE KEY id (id)
                 ) " . $this->charset_collate . ";";
                 $wpdb->query($sql_m);
+
+                // Check if removed column exists in messages table
+                $sql_removed_check = "SELECT *
+                    FROM information_schema.COLUMNS
+                    WHERE
+                        TABLE_SCHEMA = '" . $wpdb->dbname . "'
+                    AND TABLE_NAME = '" . $this->message_table . "'
+                    AND COLUMN_NAME = 'removed'";
+                $removed_check = $wpdb->get_results($sql_removed_check);
+
+                // If removed column doesn't exist then add it
+                if (empty($removed_check)) {
+                    $sql_removed = "ALTER TABLE " . $this->message_table . " ADD removed ENUM('0', '1') DEFAULT '0' NOT NULL";
+                    $wpdb->query($sql_removed);
+                }
 
                 // Create chat page
                 $chat_page = array(
@@ -307,7 +324,7 @@
                 }
 
                 $information['other_user_id'] = $other_user;
-                $user = $wpdb->get_results("SELECT * FROM wp_users WHERE ID = '$other_user'");
+                $user = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "users WHERE ID = '$other_user'");
 
                 $name_display = get_option($this->plugin_prefix . 'name_display');
                 if ($name_display == 'user_firstname') {
@@ -316,7 +333,7 @@
                     $information['other_user_name'] = $user[0]->$name_display;
                 }
 
-                $check_friendship = $wpdb->get_row("SELECT COUNT(*) as count FROM wp_bp_activity WHERE type = 'friendship_created' AND (user_id = '" . bp_loggedin_user_id() . "' AND secondary_item_id = '$other_user') OR (user_id = '$other_user' AND secondary_item_id = '" . bp_loggedin_user_id() . "')");
+                $check_friendship = $wpdb->get_row("SELECT COUNT(*) as count FROM " . $wpdb->prefix . "bp_activity WHERE type = 'friendship_created' AND (user_id = '" . bp_loggedin_user_id() . "' AND secondary_item_id = '$other_user') OR (user_id = '$other_user' AND secondary_item_id = '" . bp_loggedin_user_id() . "')");
                 $information['friends'] = $check_friendship->count;
 
                 return $information;
@@ -390,12 +407,12 @@
                 if (bp_is_active('friends') && get_option($this->plugin_prefix . 'friends_only') == 1) {
                     // Array to store friends for logged in user
                     $friends = array();
-                    $get_friends = $wpdb->get_results("SELECT * FROM wp_bp_activity WHERE type = 'friendship_created' AND user_id = '" . bp_loggedin_user_id() . "'");
+                    $get_friends = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "bp_activity WHERE type = 'friendship_created' AND user_id = '" . bp_loggedin_user_id() . "'");
                     foreach ($get_friends as $friendship) {
                         $friends[] = $friendship->secondary_item_id;
                     }
 
-                    $get_friends = $wpdb->get_results("SELECT * FROM wp_bp_activity WHERE type = 'friendship_created' AND secondary_item_id = '" . bp_loggedin_user_id() . "'");
+                    $get_friends = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "bp_activity WHERE type = 'friendship_created' AND secondary_item_id = '" . bp_loggedin_user_id() . "'");
                     foreach ($get_friends as $friendship) {
                         $friends[] = $friendship->user_id;
                     }
@@ -404,7 +421,7 @@
 
                     // Search for users
                     $users = $wpdb->get_results("SELECT *
-                        FROM wp_users
+                        FROM " . $wpdb->prefix . "users
                         WHERE (display_name LIKE '%$query%' OR user_nicename LIKE '%$query%')
                         AND ID IN ($friends)
                         AND ID != '" . bp_loggedin_user_id() . "'
@@ -412,7 +429,7 @@
                 } else {
                     // Search for users
                     $users = $wpdb->get_results("SELECT *
-                        FROM wp_users
+                        FROM " . $wpdb->prefix . "users
                         WHERE (display_name LIKE '%$query%' OR user_nicename LIKE '%$query%')
                         AND ID != '" . bp_loggedin_user_id() . "'
                     ");
@@ -582,7 +599,11 @@
                                 <div class="bpic-message-container">
                                     <?php echo bp_core_fetch_avatar($avatar_args); ?>
                                     <p class="bpic-message-display-name"><?php echo $user_from->$name_display; ?></p>
-                                    <p class="bpic-message"><?php echo nl2br($message->message); ?></p>
+                                    <?php if ($message->removed == '0') { ?>
+                                        <p class="bpic-message"><?php echo nl2br($message->message); ?></p>
+                                    <?php } else { ?>
+                                        <p class="bpic-message"><?php _e('This message has been removed by an admin!', 'bpic'); ?></p>
+                                    <?php } ?>
                                     <span class="bpic-message-status"><?php echo $status; ?></span>
                                 </div>
                             <?php
@@ -778,14 +799,14 @@
             {
                 global $wpdb;
 
-                $check_user_one = $wpdb->get_results("SELECT * FROM wp_users WHERE ID = '$user_one' OR user_login = '$user_one' OR user_email = '$user_one'");
+                $check_user_one = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "users WHERE ID = '$user_one' OR user_login = '$user_one' OR user_email = '$user_one'");
                 if (!$check_user_one[0]->ID) {
                     return __('Sorry but user 1 could not be found', 'bpic');
                 } else {
                     $user_one = $check_user_one[0]->ID;
                 }
 
-                $check_user_two = $wpdb->get_results("SELECT * FROM wp_users WHERE ID = '$user_two' OR user_login = '$user_two' OR user_email = '$user_two'");
+                $check_user_two = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "users WHERE ID = '$user_two' OR user_login = '$user_two' OR user_email = '$user_two'");
                 if (!$check_user_two[0]->ID) {
                     return __('Sorry but user 2 could not be found', 'bpic');
                 } else {
@@ -843,23 +864,87 @@
                         $user_two = $this->message_control_user_display($post['user_two']);
 
                         $messages = $wpdb->get_results("SELECT * FROM $this->message_table WHERE conversation_id = '$conversation_id' ORDER BY `timestamp` DESC");
-                        foreach($messages as $message)
-                        {
-                            if ($message->message_from == $user_one['ID']) {
-                                $user_display = $user_one['display'];
-                            } else if ($message->message_from == $user_two['ID']) {
-                                $user_display = $user_two['display'];
-                            }
+                        ?>
+                            <table class="bpic-message-control-table">
+                                <tr>
+                                    <td>User</td>
+                                    <td>Message</td>
+                                    <td>Timestamp</td>
+                                    <td>Actions</td>
+                                </tr>
+                                <?php
+                                    foreach($messages as $message)
+                                    {
+                                        if ($message->message_from == $user_one['ID']) {
+                                            $user_display = $user_one['display'];
+                                        } else if ($message->message_from == $user_two['ID']) {
+                                            $user_display = $user_two['display'];
+                                        }
 
-                            ?>
-                                <p class="bpic-message-control-message"><b><?php echo esc_html($user_display); ?>:</b> <?php echo esc_html($message->message); ?> (<?php echo $message->timestamp; ?>)</p>
-                            <?php
-                        }
+                                        if ($message->removed == '1') {
+                                            $column_bg_colour = 'bgcolor="#f93838"';
+                                        } else {
+                                            $column_bg_colour = 'bgcolor=""';
+                                        }
+
+                                        ?>
+                                            <tr>
+                                                <td <?php echo $column_bg_colour; ?>><?php echo esc_html($user_display); ?></td>
+                                                <td <?php echo $column_bg_colour; ?>><?php echo esc_html($message->message); ?></td>
+                                                <td <?php echo $column_bg_colour; ?>><?php echo $message->timestamp; ?></td>
+                                                <td <?php echo $column_bg_colour; ?>>
+                                                    <form class="bpic-no-margin" action="<?php echo site_url(); ?>/wp-admin/admin.php?page=<?php echo $this->plugin_name; ?>&view=msg_control&action=true" method="post">
+                                                        <input type="hidden" name="form" value="<?php echo $_POST['form']; ?>">
+                                                        <input type="hidden" name="user_one" value="<?php echo $_POST['user_one']; ?>">
+                                                        <input type="hidden" name="user_two" value="<?php echo $_POST['user_two']; ?>">
+                                                        <?php if ($message->removed == '0') { ?>
+                                                            <input type="hidden" name="message_control" value="1">
+                                                            <input type="hidden" name="action" value="remove_message">
+                                                            <input type="hidden" name="message_id" value="<?php echo $message->id; ?>">
+                                                            <button type="submit" class="button" name="submit" value="1"><?php _e('Remove Message', 'bpic'); ?></button>
+                                                        <?php } else { ?>
+                                                            <span class="bpic-middle-align"><?php _e('Message was removed', 'bpic'); ?></span>
+                                                            <input type="hidden" name="message_control" value="1">
+                                                            <input type="hidden" name="action" value="add_message">
+                                                            <input type="hidden" name="message_id" value="<?php echo $message->id; ?>">
+                                                            <button type="submit" class="button" name="submit" value="1"><?php _e('Add Message', 'bpic'); ?></button>
+                                                        <?php } ?>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php
+                                    }
+                                ?>
+                            </table>
+                        <?php
                     }
                 } else {
                     ?>
                         <h2><?php _e('You must select 2 users', 'bpic'); ?></h2>
                     <?php
+                }
+            }
+
+            /**
+             * Message action control.
+             *
+             * @since     1.5
+             * @param     array     $post     The message ID.
+             * @param     string     $action     The action to perform.
+             */
+            public function message_action($message_id, $action)
+            {
+                global $wpdb;
+
+                switch ($action) {
+                    case 'remove':
+                        $wpdb->update($this->message_table, array('removed' => '1'), array('id' => $message_id));
+                        $this->admin_success_notice( __('The message was successfully removed.', 'bpic') );
+                    break;
+                    case 'add':
+                        $wpdb->update($this->message_table, array('removed' => '0'), array('id' => $message_id));
+                        $this->admin_success_notice( __('The message was successfully added.', 'bpic') );
+                    break;
                 }
             }
 
