@@ -24,13 +24,69 @@
     margin-bottom: 15px;
 }
 
-.bpic-message-container{
-    background-color: #e1e1e1;
-    padding: 10px;
-    border-radius: 3px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    margin-bottom: 15px;
+.bpic-left-align, .bpic-right-align{
+    clear: both;
+}
+
+.bpic-left-align{
+    text-align: left;
+    float: left;
+}
+
+.bpic-right-align{
+    text-align: left;
+    float: right;
+}
+
+.bpic-message-container.bpic-current-user, .bpic-message-container.bpic-other-user{
     position: relative;
+    padding: 15px;
+    margin: 1em 0;
+    border: 5px solid #5a8f00;
+    color: #333;
+    background: #fff;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    width: 600px;
+}
+
+.bpic-message-container.bpic-current-user:before, .bpic-message-container.bpic-other-user:before{
+    content: "";
+    position: absolute;
+    bottom: -20px;
+    border-width: 20px 20px 0;
+    border-style: solid;
+    border-color: #5a8f00 transparent;
+    display: block;
+    width: 0;
+}
+
+.bpic-message-container.bpic-current-user:before{
+    left: 40px;
+}
+
+.bpic-message-container.bpic-other-user:before{
+    right: 40px;
+}
+
+.bpic-message-container.bpic-current-user:after, .bpic-message-container.bpic-other-user:after{
+    content: "";
+    position: absolute;
+    bottom: -13px;
+    border-width: 13px 13px 0;
+    border-style: solid;
+    border-color: #fff transparent;
+    display: block;
+    width: 0;
+}
+
+.bpic-message-container.bpic-current-user:after{
+    left: 47px;
+}
+
+.bpic-message-container.bpic-other-user:after{
+    right: 47px;
 }
 
 .bpic-message-user-avatar{

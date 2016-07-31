@@ -4,8 +4,8 @@ Contributors: richardphelps
 Donate link: http://www.iamrichardphelps.com
 Tags: buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
 Requires at least: 3.9
-Tested up to: 4.5.3
-Stable tag: 1.5
+Tested up to: 4.6
+Stable tag: 1.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -75,6 +75,11 @@ Where can I set the dimensions of the avatar for messages?
 * Fixed bug where certain wordpress tables couldn't be found in some queries because of the incorrect database prefix being used.
 * Added the ability to remove messages from a chat and add the messages back through message control in admin.
 
+= 1.6 =
+
+* Fixed bug where the name display seetings is not set correctly when installing the plugin.
+* Changed the display of the messages so they display as speech bubbles.
+
 == Upgrade Notice ==
 
 * Version 1.0 is working on WordPress version 4.5.2
@@ -84,3 +89,4 @@ Where can I set the dimensions of the avatar for messages?
 * Version 1.3 is working on WordPress version 4.5.3
 * Version 1.4 is working on WordPress version 4.5.3
 * Version 1.5 is working on WordPress version 4.5.3
+* Version 1.5 is working on WordPress version 4.6

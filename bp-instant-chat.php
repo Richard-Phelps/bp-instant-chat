@@ -4,7 +4,7 @@
     * Plugin URI:   http://iamrichardphelps.com/
     * Description:  Instant chat plugin for BuddyPress allowing user to connect and talk in real time.
     * Tags:         buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
-    * Version:      1.5
+    * Version:      1.6
     * Author:       Richard Phelps
     * Author URI:   http://iamrichardphelps.com/
     * License URI:  http://www.gnu.org/licenses/gpl-2.0.txt
@@ -18,7 +18,7 @@
         class BPIC
         {
             public $plugin_name = 'bp-instant-chat';
-            private $version = '1.5';
+            private $version = '1.6';
             public $conversation_table;
             public $message_table;
             private $charset_collate;
@@ -148,7 +148,7 @@
                 }
 
                 if (get_option($this->plugin_prefix . 'friends_only') == '') {
-                    update_option($this->plugin_prefix . 'name_display', 0);
+                    update_option($this->plugin_prefix . 'friends_only', 0);
                 }
             }
 
@@ -594,17 +594,27 @@
                                 $status = '';
                             }
 
+                            if ($message->message_from != bp_loggedin_user_id()) {
+                                $user_class = 'bpic-other-user';
+                                $bpic_align_class = 'bpic-right-align';
+                            } else if ($message->message_from == bp_loggedin_user_id()) {
+                                $user_class = 'bpic-current-user';
+                                $bpic_align_class = 'bpic-left-align';
+                            }
+
                             // Return all messages for conversation
                             ?>
-                                <div class="bpic-message-container">
-                                    <?php echo bp_core_fetch_avatar($avatar_args); ?>
-                                    <p class="bpic-message-display-name"><?php echo $user_from->$name_display; ?></p>
-                                    <?php if ($message->removed == '0') { ?>
-                                        <p class="bpic-message"><?php echo nl2br($message->message); ?></p>
-                                    <?php } else { ?>
-                                        <p class="bpic-message"><?php _e('This message has been removed by an admin!', 'bpic'); ?></p>
-                                    <?php } ?>
-                                    <span class="bpic-message-status"><?php echo $status; ?></span>
+                                <div class="<?php echo $bpic_align_class; ?>">
+                                    <div class="bpic-message-container <?php echo $user_class; ?>">
+                                        <?php echo bp_core_fetch_avatar($avatar_args); ?>
+                                        <p class="bpic-message-display-name"><?php echo $user_from->$name_display; ?></p>
+                                        <?php if ($message->removed == '0') { ?>
+                                            <p class="bpic-message"><?php echo nl2br($message->message); ?></p>
+                                        <?php } else { ?>
+                                            <p class="bpic-message"><?php _e('This message has been removed by an admin!', 'bpic'); ?></p>
+                                        <?php } ?>
+                                        <span class="bpic-message-status"><?php echo $status; ?></span>
+                                    </div>
                                 </div>
                             <?php
                         }
