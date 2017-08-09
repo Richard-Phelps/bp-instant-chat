@@ -1,7 +1,7 @@
 === BuddyPress Instant Chat ===
 
 Contributors: richardphelps
-Donate link: http://www.iamrichardphelps.com
+Donate link: https://www.iamrichardphelps.com
 Tags: buddypress, chat, instant, messaging, communication, contact, users, plugin, page, AJAX, social, free
 Requires at least: 3.9
 Tested up to: 4.6
