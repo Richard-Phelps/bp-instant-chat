@@ -1,3 +1,5 @@
+Check the plugin out on the WordPress repository: https://en-gb.wordpress.org/plugins/bp-instant-chat/
+
 === BuddyPress Instant Chat ===
 
 Contributors: richardphelps
